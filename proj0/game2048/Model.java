@@ -223,58 +223,27 @@ public class Model extends Observable {
                     return true;
                 } else {
                     for (int i = -1; i <= 1; i++) {
-                        for(int j=-1;j<=1;j++){
-
-                        }
-                        int compareColIndex = col + i;
-                        if (i == 0) {
-                            continue;
-                        }
-                        if (compareColIndex < 0) {
-                            continue;
-                        }
-                        if (compareColIndex >= size) {
-                            continue;
-                        }
-                        Tile compareColTile = b.tile(compareColIndex, row);
-                        if (compareColTile != null) {
-                            if (compareColTile.value() == tile.value()) {
-                                return true;
+                        for (int j = -1; j <= 1; j++) {
+                            int compareColIndex = col + i;
+                            int compareRowIndex = row + j;
+                            if (compareColIndex < 0 || compareRowIndex < 0
+                                    || compareColIndex >= size || compareRowIndex >= size) {
+                                continue;
                             }
-
-                        }
-                    }
-
-                }
-
-            }
-        }
-
-        for (int row = 0; row < size; row++) {
-            for (int col = 0; col < size; col++) {
-                Tile tile = b.tile(col, row);
-                if (tile != null) {
-                    for (int j = -1; j <= 1; j++) {
-                        int compareRowIndex = col + j;
-                        if (j == 0) {
-                            continue;
-                        }
-                        if (compareRowIndex < 0) {
-                            continue;
-                        }
-                        if (compareRowIndex >= size) {
-                            continue;
-                        }
-                        Tile compareTile = b.tile(row, compareRowIndex);
-                        if (compareTile != null) {
-                            if (compareTile.value() == tile.value()) {
+                            if (i == 0 && j == 0) {
+                                continue;
+                            }
+                            if (compareColIndex != col & compareRowIndex != row) {
+                                continue;
+                            }
+                            Tile comTile = b.tile(compareColIndex, compareRowIndex);
+                            if (tile.value() == comTile.value()) {
                                 return true;
                             }
 
                         }
                     }
                 }
-
 
             }
         }
