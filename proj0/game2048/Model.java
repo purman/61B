@@ -1,5 +1,6 @@
 package game2048;
 
+import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.Observable;
 
@@ -135,7 +136,12 @@ public class Model extends Observable {
      * 3. When three adjacent tiles in the direction of motion have the same
      * value, then the leading two tiles in the direction of motion merge,
      * and the trailing tile does not.
+     * <p>
+     * 1.判断是否可以移动
+     * 2.找到相邻贴片，注意先去掉空格
+     * 3.移动贴片
      */
+
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
@@ -143,12 +149,99 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        if (!atLeastOneMoveExists(board)) {
+            changed = false;
+        }
+        board.setViewingPerspective(side);
+        int size = board.size();
 
+        for (int col = 0; col < size; col++) {
+            changed = isCurrentColChanged(changed, size - 1, col);
+        }
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
         }
         return changed;
+    }
+
+    /**
+     * 1.处理最顶部的贴片
+     * 2.移动贴片
+     * 3.从上到下递归调用每行贴片
+     */
+    private boolean isCurrentColChanged(boolean changed, int size, int col) {
+        if (size == 0) {
+            return changed;
+        }
+        System.out.println("col:" + col + " row:" + size);
+        Tile tile = board.tile(col, size);
+
+        ArrayList<Tile> moveTiles = getMoveTile(col, size, tile);
+        System.out.println("moveTiles.size:" + moveTiles.size());
+
+        if (moveTiles.size() > 0) {
+            for (Tile t : moveTiles) {
+                if (t != null) {
+                    System.out.println("col2:" + t.col() + " row2:" + t.row());
+                    Tile oldTile = board.tile(col, size);
+                    board.move(col, size, t);
+                    changed = true;
+                    if(oldTile!=null){
+                        score += board.tile(col, size).value();
+                    }
+                }
+            }
+        }
+
+        isCurrentColChanged(changed, size - 1, col);
+        return changed;
+    }
+
+
+    private ArrayList<Tile> getMoveTile(int col, int size, Tile tile) {
+//        Tile[] tiles = new Tile[2];
+
+        ArrayList<Tile> tiles = new ArrayList<>();
+
+        if (tile == null) {
+            for (int compareRow = size - 1; compareRow >= 0; compareRow--) {
+                Tile compareTitle = board.tile(col, compareRow);
+                if (compareTitle != null) {
+                    tiles.add(compareTitle);
+                    Tile sameTitle = hasSameTitle(compareTitle);
+                    if (sameTitle != null) {
+                        tiles.add(sameTitle);
+                        break;
+                    }
+                }
+            }
+        } else {
+            Tile sameTitle = hasSameTitle(tile);
+            if (sameTitle != null) {
+//                tiles[0] = sameTitle;
+                tiles.add(sameTitle);
+            }
+        }
+        return tiles;
+    }
+
+    private Tile hasSameTitle(Tile currentTitle) {
+        if (currentTitle == null) {
+            return null;
+        }
+        int currentCol = currentTitle.col();
+        int currentRow = currentTitle.row();
+        for (int compareRow = currentRow - 1; compareRow >= 0; compareRow--) {
+            Tile compareTitle = board.tile(currentCol, compareRow);
+            if (compareTitle != null) {
+                if (compareTitle.value() == currentTitle.value()) {
+                    return compareTitle;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -213,8 +306,6 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
-
         int size = b.size();
         for (int col = 0; col < size; col++) {
             for (int row = 0; row < size; row++) {
@@ -244,11 +335,8 @@ public class Model extends Observable {
                         }
                     }
                 }
-
             }
         }
-
-
         return false;
     }
 
